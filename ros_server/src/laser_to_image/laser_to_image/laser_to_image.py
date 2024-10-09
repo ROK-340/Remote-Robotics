@@ -9,6 +9,7 @@ from sensor_msgs.msg import Image
 from websockets import connect
 import rclpy
 from rclpy.node import Node
+import pandas as pd
 
 class LaserScanToImageNode(Node):
     def __init__(self):
@@ -21,7 +22,7 @@ class LaserScanToImageNode(Node):
         self.bridge = CvBridge()
 
         # WebSocket connection details
-        self.websocket_uri = "ws://<RPI_IP_ADDRESS>:9090"  # Replace <RPI_IP_ADDRESS> with your Raspberry Pi's IP address
+        self.websocket_uri = "ws://192.168.0.104:9090"  # Replace <RPI_IP_ADDRESS> with your Raspberry Pi's IP address
 
         # Start WebSocket connection
         self.loop = asyncio.get_event_loop()
@@ -57,7 +58,8 @@ class LaserScanToImageNode(Node):
         center_y = height // 2
 
         # Handle NaN values and find the max distance
-        valid_ranges = [r for r in msg['ranges'] if not (np.isnan(r) or np.isinf(r)) and r > 0]
+        # print(type(msg['ranges'][0]))
+        valid_ranges = [r for r in msg['ranges'] if not (pd.isnull(r) or np.isinf(r)) and r > 0]
         if valid_ranges:
             max_distance = max(valid_ranges)
             print("max_d:", max_distance)
@@ -67,7 +69,7 @@ class LaserScanToImageNode(Node):
 
         # Draw the LaserScan data on the image
         for i, distance in enumerate(msg['ranges']):
-            if np.isnan(distance) or distance <= 0:
+            if pd.isnull(distance) or distance <= 0:
                 continue
 
             # Convert polar to Cartesian coordinates
@@ -104,3 +106,4 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
+
